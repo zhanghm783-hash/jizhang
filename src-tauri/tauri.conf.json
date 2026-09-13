@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "黑马记账",
+  "productName": "记账APP",
   "version": "0.1.0",
   "identifier": "com.heima.accounting",
   "build": {
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "黑马记账",
+        "title": "记账APP",
         "width": 1000,
         "height": 700,
         "minWidth": 800,
