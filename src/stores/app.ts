@@ -1,7 +1,10 @@
 import { computed, ref } from "vue";
 import { defineStore } from "pinia";
 import {
+  addCategory as dbAddCategory,
   addExpense,
+  countExpensesByCategory,
+  deleteCategory as dbDeleteCategory,
   deleteExpense,
   fetchCategories,
   fetchMonthExpenses,
@@ -9,8 +12,11 @@ import {
   fetchMonthSummary,
   fetchTrendMonths,
   initDatabase,
+  updateCategory as dbUpdateCategory,
   updateExpense,
+  type CategoryPatch,
   type ExpenseInput,
+  type NewCategoryInput,
 } from "../db";
 import type { Category, CategoryTotal, DayGroup, ExpenseListItem, TrendPoint } from "../types";
 
@@ -118,6 +124,35 @@ export const useAppStore = defineStore("app", () => {
     await reload();
   }
 
+  /**
+   * 分类任何变更后的统一刷新：
+   * 重新读分类 + 刷新流水与统计（账单里的分类名是连表查出来的，不刷新会显示旧名）。
+   */
+  async function refreshCategories(): Promise<void> {
+    categories.value = await fetchCategories();
+    await Promise.all([reload(), reloadStats()]);
+  }
+
+  async function addCategory(input: NewCategoryInput): Promise<void> {
+    await dbAddCategory(input);
+    await refreshCategories();
+  }
+
+  async function updateCategory(id: number, patch: CategoryPatch): Promise<void> {
+    await dbUpdateCategory(id, patch);
+    await refreshCategories();
+  }
+
+  async function removeCategory(id: number): Promise<void> {
+    await dbDeleteCategory(id);
+    await refreshCategories();
+  }
+
+  /** 某二级分类下的账单数（删除前判断用，视图层只依赖 store） */
+  async function expenseCount(categoryId: number): Promise<number> {
+    return countExpensesByCategory(categoryId);
+  }
+
   return {
     ready,
     month,
@@ -137,5 +172,9 @@ export const useAppStore = defineStore("app", () => {
     goCurrentMonth,
     saveExpense,
     removeExpense,
+    addCategory,
+    updateCategory,
+    removeCategory,
+    expenseCount,
   };
 });

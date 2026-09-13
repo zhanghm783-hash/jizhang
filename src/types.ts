@@ -5,6 +5,8 @@ export interface Category {
   parent_id: number | null;
   sort_order: number;
   icon: string | null;
+  /** 0 = 用户自建（可改可删），1 = 内置锁定（不可改不可删） */
+  builtin: number;
 }
 
 /** 账单（expenses 表）原始字段 */

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { DataAnalysis, Wallet } from "@element-plus/icons-vue";
+import { DataAnalysis, FolderOpened, Wallet } from "@element-plus/icons-vue";
 import { useAppStore } from "./stores/app";
 import RecordsView from "./views/RecordsView.vue";
 import StatsView from "./views/StatsView.vue";
+import CategoriesView from "./views/CategoriesView.vue";
 
 const store = useAppStore();
-const active = ref<"records" | "stats">("records");
+const active = ref<"records" | "stats" | "categories">("records");
 
 onMounted(() => {
   void store.init();
@@ -34,6 +35,14 @@ onMounted(() => {
           <el-icon><DataAnalysis /></el-icon>
           <span>统计分析</span>
         </div>
+        <div
+          class="menu-item"
+          :class="{ active: active === 'categories' }"
+          @click="active = 'categories'"
+        >
+          <el-icon><FolderOpened /></el-icon>
+          <span>分类管理</span>
+        </div>
       </nav>
       <div class="sidebar-footer">数据保存在本机 · 安心记账</div>
     </aside>
@@ -41,7 +50,8 @@ onMounted(() => {
     <main class="content">
       <div v-if="!store.ready" class="app-loading">正在打开账本…</div>
       <RecordsView v-else-if="active === 'records'" />
-      <StatsView v-else />
+      <StatsView v-else-if="active === 'stats'" />
+      <CategoriesView v-else />
     </main>
   </div>
 </template>

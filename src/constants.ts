@@ -1,6 +1,9 @@
 /** 支付方式（一期固定列表） */
 export const PAYMENT_METHODS = ["微信", "支付宝", "现金", "银行卡", "信用卡", "其他"];
 
+/** 新建一级分类时可选的 emoji 图标 */
+export const CATEGORY_ICONS = ["🍜", "🚗", "🛒", "🏠", "🎮", "💊", "📚", "🎁", "💰", "📦", "🗂️", "✈️", "👕", "🐶", "💼", "🧾"];
+
 /** 内置两级分类（首次启动时写入数据库） */
 export interface SeedCategory {
   name: string;
