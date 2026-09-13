@@ -17,7 +17,7 @@ onMounted(() => {
 <template>
   <div class="layout">
     <aside class="sidebar">
-      <div class="logo">💰 记账APP</div>
+      <div class="logo">🐎 黑马记账</div>
       <nav class="menu">
         <div
           class="menu-item"
