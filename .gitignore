@@ -24,4 +24,7 @@ dist-ssr
 *.sw?
 
 # Claude Code 本机工作记录（不属于产品代码）
-.claude/
+# 例外：技能（skills）和帮工（agents）是项目协作资产，跟随项目提交
+.claude/*
+!.claude/skills/
+!.claude/agents/
