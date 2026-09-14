@@ -5,9 +5,10 @@ import { useAppStore } from "./stores/app";
 import RecordsView from "./views/RecordsView.vue";
 import StatsView from "./views/StatsView.vue";
 import CategoriesView from "./views/CategoriesView.vue";
+import SnakeView from "./views/SnakeView.vue";
 
 const store = useAppStore();
-const active = ref<"records" | "stats" | "categories">("records");
+const active = ref<"records" | "stats" | "categories" | "snake">("records");
 
 onMounted(() => {
   void store.init();
@@ -43,15 +44,27 @@ onMounted(() => {
           <el-icon><FolderOpened /></el-icon>
           <span>分类管理</span>
         </div>
+        <div
+          class="menu-item"
+          :class="{ active: active === 'snake' }"
+          @click="active = 'snake'"
+        >
+          <span class="menu-emoji">🐍</span>
+          <span>贪吃蛇</span>
+        </div>
       </nav>
       <div class="sidebar-footer">数据保存在本机 · 安心记账</div>
     </aside>
 
     <main class="content">
       <div v-if="!store.ready" class="app-loading">正在打开账本…</div>
-      <RecordsView v-else-if="active === 'records'" />
-      <StatsView v-else-if="active === 'stats'" />
-      <CategoriesView v-else />
+      <!-- 只缓存贪吃蛇页：切走时暂停保局，其他页面保持原来的每次重新加载 -->
+      <KeepAlive v-else :include="['SnakeView']">
+        <RecordsView v-if="active === 'records'" />
+        <StatsView v-else-if="active === 'stats'" />
+        <SnakeView v-else-if="active === 'snake'" />
+        <CategoriesView v-else />
+      </KeepAlive>
     </main>
   </div>
 </template>
@@ -105,6 +118,15 @@ onMounted(() => {
 .menu-item.active {
   background: rgba(245, 158, 11, 0.15);
   color: #fbbf24;
+}
+
+/* 菜单里用 emoji 当图标时，宽度对齐 el-icon（16px） */
+.menu-emoji {
+  width: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
 }
 
 .sidebar-footer {
