@@ -110,7 +110,28 @@
 - 不联网、不上传、隐私安全；换电脑时拷贝该数据库文件即可迁移（二期将提供图形化备份/恢复功能）。
 - 数据库文件位置由 Tauri 的应用数据目录管理（Windows：`%APPDATA%` 下；Mac：`~/Library/Application Support/` 下）。
 
-## 六、开发流程约定
+## 六、提交前自动检查（2026-09-14 上线）
+
+每次 `git commit` 前必须通过「单元测试 + 质量检查」两道关，都通过才放行。通过标记是**一次性**的：每次提交执行后（不管成功失败）立即销毁，下次提交必须重新检查。
+
+### 6.1 正常提交流程
+
+对 Claude 说"提交"或"存档"→ 主会话派出 **gitcommit-agent** → 并行派出 **tester**（跑 Vitest 单元测试）和 **quality-checker**（跑质检）两个帮工 → 都通过后各写一个通过标记 → 调用 **git-save** 技能执行提交。
+
+### 6.2 双层拦截关卡
+
+- **Claude Code 钩子**（PreToolUse，配置在 `.claude/settings.json`）：拦截 Claude 执行的 git commit，被拦时给中文提示。
+- **Git 原生 pre-commit 钩子**（`.git/hooks/pre-commit`）：拦截一切 git commit（含手动终端、VSCode），提交时验证标记并销毁。
+- **逃生门**：手动执行 `git commit --no-verify` 可跳过原生钩子（仅紧急情况，慎用；经 Claude 发起的 --no-verify 仍会被 Claude 钩子拦截）。
+
+### 6.3 标记文件与脚本
+
+- 标记在 `.claude/checks/` 下（tests.pass.json / quality.pass.json 等，不入库）；标记超过 24 小时未用自动作废（兜底规则）。
+- 核心脚本 `scripts/markers.mjs`（写标记 / 检查 / 销毁 / 钩子拦截逻辑，全部逻辑在这一个文件里）。
+- 原生钩子装在 `.git/hooks/`（不进版本库）：**换电脑或重建仓库后需重装**——把 `cd "$(git rev-parse --show-toplevel)" && node scripts/markers.mjs check-and-consume` 写进 pre-commit 即可。
+- Claude Code 钩子配置在 `.claude/settings.json`（本机配置不入库），**修改后需重启 Claude Code 生效**，可用 `/hooks` 查看是否加载。
+
+## 七、开发流程约定
 
 按以下阶段推进，**每阶段完成后演示给用户验收，确认后再进入下一阶段**：
 
@@ -121,7 +142,7 @@
 5. ✅ **打包发布**：打出 Windows 安装包（2.8MB），用户安装试用验收通过（2026-09-14）。
 6. ⏳ **（如需要）Mac 版**：在 Mac 电脑上配置环境并打包 Mac 安装包。
 
-补充说明（2026-09-14）：项目内置两个 Claude Code 技能——`/package`（打包 exe 安装包）与 `/quality-check`（类型 + 构建质检，含质检帮工 quality-checker），新开对话即可使用。
+补充说明（2026-09-14）：项目内置三个 Claude Code 技能——`/package`（打包 exe 安装包）、`/quality-check`（类型 + 构建质检）与 `/git-save`（提交存档）；内置三个帮工——quality-checker（质检）、tester（单元测试）、gitcommit-agent（提交总指挥）。单元测试用 Vitest 跑 `npm test`（19 个测试用例，覆盖分类种子数据、日期/月份计算、账单分组、金额格式）。新开对话即可使用。
 
 ---
-*文档版本：v1.1（2026-09-14 更新：阶段 1–5 验收通过、贪吃蛇上线、打包仅出 .exe、新增打包/质检技能）*
+*文档版本：v1.2（2026-09-14 更新：提交前自动检查上线——测试+质检双关卡拦截 git commit、一次性通过标记、gitcommit-agent/tester 帮工与 git-save 技能、Vitest 单元测试）*

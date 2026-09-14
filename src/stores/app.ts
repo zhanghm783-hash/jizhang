@@ -19,18 +19,10 @@ import {
   type NewCategoryInput,
 } from "../db";
 import type { Category, CategoryTotal, DayGroup, ExpenseListItem, TrendPoint } from "../types";
+import { currentMonth, formatMonthLabel, monthAdd } from "../utils/date";
+import { groupExpensesByDate } from "../utils/group";
 
-/** 当前月份，格式 YYYY-MM */
-function currentMonth(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
-}
-
-/** "2026-09" → "2026年9月" */
-export function formatMonthLabel(month: string): string {
-  const [y, m] = month.split("-").map(Number);
-  return `${y}年${m}月`;
-}
+export { formatMonthLabel };
 
 export const useAppStore = defineStore("app", () => {
   const ready = ref(false);
@@ -51,19 +43,7 @@ export const useAppStore = defineStore("app", () => {
   }
 
   /** 按日期分组的账单（供流水列表使用） */
-  const dayGroups = computed<DayGroup[]>(() => {
-    const groups: DayGroup[] = [];
-    for (const item of expenses.value) {
-      const last = groups[groups.length - 1];
-      if (last && last.date === item.date) {
-        last.items.push(item);
-        last.totalCents += item.amount_cents;
-      } else {
-        groups.push({ date: item.date, items: [item], totalCents: item.amount_cents });
-      }
-    }
-    return groups;
-  });
+  const dayGroups = computed<DayGroup[]>(() => groupExpensesByDate(expenses.value));
 
   /** 应用启动时调用：初始化数据库、加载分类与账单 */
   async function init(): Promise<void> {
@@ -96,9 +76,7 @@ export const useAppStore = defineStore("app", () => {
 
   /** 切换月份：delta 为 -1 上个月、1 下个月 */
   function changeMonth(delta: number): void {
-    const [y, m] = month.value.split("-").map(Number);
-    const d = new Date(y, m - 1 + delta, 1);
-    month.value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    month.value = monthAdd(month.value, delta);
     void reload();
     void reloadStats();
   }

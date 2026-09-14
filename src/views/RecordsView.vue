@@ -4,6 +4,7 @@ import { Delete, Plus } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useAppStore } from "../stores/app";
 import type { ExpenseListItem } from "../types";
+import { formatYuan as yuan } from "../utils/money";
 import ExpenseDialog from "../components/ExpenseDialog.vue";
 import MonthNav from "../components/MonthNav.vue";
 
@@ -11,11 +12,6 @@ const store = useAppStore();
 
 const dialogVisible = ref(false);
 const editing = ref<ExpenseListItem | null>(null);
-
-/** 分 → "12.50" 元字符串 */
-function yuan(cents: number): string {
-  return (cents / 100).toFixed(2);
-}
 
 const WEEKDAYS = ["日", "一", "二", "三", "四", "五", "六"];
 
